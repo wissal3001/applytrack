@@ -35,3 +35,25 @@ h1 { margin-top: 0; }
 .flash-success { background: #e4f7ea; color: #1e7b3a; }
 .flash-error   { background: #fdeaea; color: #b52a2a; }
 .empty { background: #fff; padding: 24px; border-radius: 8px; text-align: center; }
+
+/* ---- Sprint 2: search toolbar and dashboard ---- */
+.toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
+.toolbar input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
+.toolbar select { padding: 8px; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
+
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+.card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.card-label { color: #666; font-size: 0.85rem; }
+.card-value { font-size: 2rem; font-weight: 700; margin-top: 6px; }
+.card-hint { color: #999; font-size: 0.75rem; }
+
+.bars { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.bar-label { width: 90px; font-weight: 600; color: #222; text-decoration: none; }
+.bar-track { flex: 1; height: 18px; background: #f0f1f4; border-radius: 9px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 9px; }
+.bar-fill.status-applied   { background: #2f7de1; }
+.bar-fill.status-interview { background: #f0a020; }
+.bar-fill.status-offer     { background: #2e9e55; }
+.bar-fill.status-rejected  { background: #d9534f; }
+.bar-count { width: 30px; text-align: right; font-weight: 600; }

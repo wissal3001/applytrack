@@ -71,6 +71,43 @@ def get_all_applications(db_path):
         return [dict(row) for row in rows]
 
 
+def search_applications(db_path, query="", status=""):
+    """FR6 + FR7 — Search by company name and/or filter by status.
+    Empty values mean 'no filter'. The SQL query is built step by step."""
+    sql = "SELECT * FROM applications WHERE 1=1"
+    params = []
+    if query:
+        sql += " AND company LIKE ?"          # LIKE + % = 'contains'
+        params.append("%" + query + "%")
+    if status:
+        sql += " AND status = ?"
+        params.append(status)
+    sql += " ORDER BY application_date DESC, id DESC"
+    with get_connection(db_path) as conn:
+        rows = conn.execute(sql, params).fetchall()
+        return [dict(row) for row in rows]
+
+
+def get_statistics(db_path):
+    """FR8 — Compute the numbers shown on the dashboard."""
+    with get_connection(db_path) as conn:
+        total = conn.execute("SELECT COUNT(*) FROM applications").fetchone()[0]
+        rows = conn.execute(
+            "SELECT status, COUNT(*) AS n FROM applications GROUP BY status"
+        ).fetchall()
+
+    # Start every status at 0 so the dashboard always shows all four
+    by_status = {s: 0 for s in STATUSES}
+    for row in rows:
+        by_status[row["status"]] = row["n"]
+
+    # Percentage of applications that reached at least an interview
+    progressed = by_status["Interview"] + by_status["Offer"]
+    interview_rate = round(progressed * 100 / total) if total else 0
+
+    return {"total": total, "by_status": by_status, "interview_rate": interview_rate}
+
+
 def get_application(db_path, app_id):
     """Return one application as a dictionary, or None if it does not exist."""
     with get_connection(db_path) as conn:

@@ -2,6 +2,19 @@
 {% block content %}
 <h1>My applications</h1>
 
+{# FR6 + FR7: search bar and status filter (GET form → values appear in the URL) #}
+<form method="get" action="{{ url_for('index') }}" class="toolbar">
+  <input type="text" name="q" placeholder="Search by company..." value="{{ query }}">
+  <select name="status">
+    <option value="">All statuses</option>
+    {% for s in statuses %}
+      <option value="{{ s }}" {% if s == selected_status %}selected{% endif %}>{{ s }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-primary">Search</button>
+  {% if query or selected_status %}<a href="{{ url_for('index') }}" class="btn">Reset</a>{% endif %}
+</form>
+
 {% if applications %}
 <table class="table">
   <thead>
@@ -44,6 +57,8 @@
     {% endfor %}
   </tbody>
 </table>
+{% elif query or selected_status %}
+<p class="empty">No application matches your search.</p>
 {% else %}
 <p class="empty">No applications yet. <a href="{{ url_for('new_application') }}">Add your first one</a>.</p>
 {% endif %}

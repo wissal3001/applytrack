@@ -25,13 +25,28 @@ def create_app(db_path=None):
     def db():
         return app.config["DATABASE"]
 
-    # ---------- FR2: list all applications ----------
+    # ---------- FR2 + FR6 + FR7: list, search and filter ----------
     @app.route("/")
     def index():
-        applications = models.get_all_applications(db())
+        # Values come from the URL, e.g. /?q=orange&status=Interview
+        query = request.args.get("q", "").strip()
+        status = request.args.get("status", "")
+        if status not in models.STATUSES:
+            status = ""  # ignore unknown statuses
+        applications = models.search_applications(db(), query, status)
         return render_template(
-            "index.html", applications=applications, statuses=models.STATUSES
+            "index.html",
+            applications=applications,
+            statuses=models.STATUSES,
+            query=query,
+            selected_status=status,
         )
+
+    # ---------- FR8: dashboard with statistics ----------
+    @app.route("/dashboard")
+    def dashboard():
+        stats = models.get_statistics(db())
+        return render_template("dashboard.html", stats=stats)
 
     # ---------- FR1: create a new application ----------
     @app.route("/applications/new", methods=["GET", "POST"])
@@ -99,6 +114,7 @@ def create_app(db_path=None):
     return app
 
 
-# Run with:  python app.py   then open http://127.0.0.1:5000
+# Run with:  python app.py   then open http://127.0.0.1:5001
 if __name__ == "__main__":
-    create_app().run(debug=True)
+    # Port 5001 because port 5000 is used by AirPlay on macOS
+    create_app().run(debug=True, port=5001)

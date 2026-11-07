@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+{# FR8: basic statistics about saved applications #}
+<h1>Dashboard</h1>
+
+<div class="cards">
+  <div class="card">
+    <div class="card-label">Total applications</div>
+    <div class="card-value">{{ stats.total }}</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Interview rate</div>
+    <div class="card-value">{{ stats.interview_rate }}%</div>
+    <div class="card-hint">reached Interview or Offer</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Offers</div>
+    <div class="card-value">{{ stats.by_status["Offer"] }}</div>
+  </div>
+</div>
+
+<h2>Distribution by status</h2>
+<div class="bars">
+  {% for status, count in stats.by_status.items() %}
+    {% set pct = (count * 100 / stats.total) if stats.total else 0 %}
+    <div class="bar-row">
+      <a class="bar-label" href="{{ url_for('index', status=status) }}">{{ status }}</a>
+      <div class="bar-track">
+        <div class="bar-fill status-{{ status|lower }}" style="width: {{ pct }}%"></div>
+      </div>
+      <span class="bar-count">{{ count }}</span>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
