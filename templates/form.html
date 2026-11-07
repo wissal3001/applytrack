@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+{# The same template is used to CREATE (mode="new") and to EDIT (mode="edit") #}
+<h1>{{ "New application" if mode == "new" else "Edit application" }}</h1>
+
+<form method="post" class="form">
+  <label>Company *
+    <input type="text" name="company" required maxlength="100" value="{{ application.company or '' }}">
+  </label>
+
+  <label>Job title *
+    <input type="text" name="job_title" required maxlength="100" value="{{ application.job_title or '' }}">
+  </label>
+
+  <label>Location
+    <input type="text" name="location" value="{{ application.location or '' }}">
+  </label>
+
+  <label>Application date *
+    <input type="date" name="application_date" required value="{{ application.application_date or '' }}">
+  </label>
+
+  <label>Status *
+    <select name="status">
+      {% for s in statuses %}
+        <option value="{{ s }}" {% if s == application.status %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Job link
+    <input type="url" name="job_link" placeholder="https://..." value="{{ application.job_link or '' }}">
+  </label>
+
+  <label>Notes
+    <textarea name="notes" rows="4">{{ application.notes or '' }}</textarea>
+  </label>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">{{ "Add" if mode == "new" else "Save changes" }}</button>
+    <a href="{{ url_for('index') }}" class="btn">Cancel</a>
+  </div>
+</form>
+{% endblock %}

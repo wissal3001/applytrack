@@ -1,0 +1,37 @@
+/* ApplyTrack — simple, clean styles (NFR1 usability, NFR5 modern browsers) */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #f5f6fa; color: #222; }
+
+.topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 32px; background: #1f3a5f; }
+.topbar a { color: #fff; text-decoration: none; margin-left: 16px; }
+.logo { font-weight: 700; font-size: 1.3rem; margin-left: 0 !important; }
+
+.container { max-width: 1050px; margin: 32px auto; padding: 0 16px; }
+h1 { margin-top: 0; }
+
+.btn { display: inline-block; padding: 6px 12px; border: 1px solid #ccc; border-radius: 6px; background: #fff; color: #222; cursor: pointer; font-size: 0.9rem; text-decoration: none; }
+.btn-primary { background: #2f7de1; border-color: #2f7de1; color: #fff !important; }
+.btn-danger { background: #fff; border-color: #d9534f; color: #d9534f; }
+
+.table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+.table th { background: #fafbfc; font-size: 0.85rem; color: #555; }
+.actions { white-space: nowrap; }
+.inline { display: inline; }
+.small { font-size: 0.8rem; margin-left: 6px; }
+
+.status { padding: 4px 8px; border-radius: 12px; border: 1px solid transparent; font-weight: 600; }
+.status-applied   { background: #e7f0fd; color: #1d5fbf; }
+.status-interview { background: #fff4e0; color: #b26a00; }
+.status-offer     { background: #e4f7ea; color: #1e7b3a; }
+.status-rejected  { background: #fdeaea; color: #b52a2a; }
+
+.form { background: #fff; padding: 24px; border-radius: 8px; max-width: 560px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.form label { display: block; margin-bottom: 14px; font-weight: 600; font-size: 0.9rem; }
+.form input, .form select, .form textarea { display: block; width: 100%; margin-top: 4px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font: inherit; font-weight: 400; }
+.form-actions { display: flex; gap: 8px; }
+
+.flash { padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; }
+.flash-success { background: #e4f7ea; color: #1e7b3a; }
+.flash-error   { background: #fdeaea; color: #b52a2a; }
+.empty { background: #fff; padding: 24px; border-radius: 8px; text-align: center; }
