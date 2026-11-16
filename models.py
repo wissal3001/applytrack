@@ -3,7 +3,7 @@ models.py — MODEL layer (MVC architecture).
 
 This file is the ONLY place that talks to the SQLite database.
 The rest of the application calls these functions instead of writing SQL.
-Requirements covered: FR1, FR2, FR3, FR4, FR5, FR9, NFR3 (data persists on disk).
+Requirements covered: FR1, FR2, FR3, FR4, FR5, FR9, FR10, NFR3 (data persists on disk).
 """
 
 import sqlite3
@@ -21,7 +21,9 @@ def get_connection(db_path):
 
 
 def init_db(db_path):
-    """Create the 'applications' table if it does not exist yet (FR9)."""
+    """Create the 'applications' table if it does not exist yet (FR9).
+    Also upgrades an older database: if the job_reference column (FR10) is
+    missing, it is added with ALTER TABLE. Existing rows are kept untouched."""
     with get_connection(db_path) as conn:
         conn.execute(
             """
@@ -33,10 +35,15 @@ def init_db(db_path):
                 application_date TEXT NOT NULL,
                 status           TEXT NOT NULL DEFAULT 'Applied',
                 job_link         TEXT,
-                notes            TEXT
+                notes            TEXT,
+                job_reference    TEXT
             )
             """
         )
+        # Migration for databases created before Sprint 4 (FR10)
+        columns = [row["name"] for row in conn.execute("PRAGMA table_info(applications)")]
+        if "job_reference" not in columns:
+            conn.execute("ALTER TABLE applications ADD COLUMN job_reference TEXT")
 
 
 def create_application(db_path, data):
@@ -46,8 +53,9 @@ def create_application(db_path, data):
         cursor = conn.execute(
             """
             INSERT INTO applications
-                (company, job_title, location, application_date, status, job_link, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+                (company, job_title, location, application_date, status, job_link, notes,
+                 job_reference)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 data["company"],
@@ -57,6 +65,7 @@ def create_application(db_path, data):
                 data.get("status", "Applied"),
                 data.get("job_link", ""),
                 data.get("notes", ""),
+                data.get("job_reference", ""),
             ),
         )
         return cursor.lastrowid
@@ -72,19 +81,35 @@ def get_all_applications(db_path):
 
 
 def search_applications(db_path, query="", status=""):
-    """FR6 + FR7 — Search by company name and/or filter by status.
+    """FR6 + FR7 + FR10 — Search by company name or job reference,
+    and/or filter by status.
     Empty values mean 'no filter'. The SQL query is built step by step."""
     sql = "SELECT * FROM applications WHERE 1=1"
     params = []
     if query:
-        sql += " AND company LIKE ?"          # LIKE + % = 'contains'
-        params.append("%" + query + "%")
+        sql += " AND (company LIKE ? OR job_reference LIKE ?)"  # LIKE + % = 'contains'
+        params += ["%" + query + "%", "%" + query + "%"]
     if status:
         sql += " AND status = ?"
         params.append(status)
     sql += " ORDER BY application_date DESC, id DESC"
     with get_connection(db_path) as conn:
         rows = conn.execute(sql, params).fetchall()
+        return [dict(row) for row in rows]
+
+
+def find_by_reference(db_path, reference):
+    """FR10 — Return the applications whose job reference is EXACTLY the given code
+    (ignoring upper/lower case and surrounding spaces). Empty list if none."""
+    reference = (reference or "").strip()
+    if not reference:
+        return []
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            "SELECT * FROM applications WHERE job_reference = ? COLLATE NOCASE "
+            "ORDER BY application_date DESC, id DESC",
+            (reference,),
+        ).fetchall()
         return [dict(row) for row in rows]
 
 
@@ -124,7 +149,7 @@ def update_application(db_path, app_id, data):
             """
             UPDATE applications
             SET company = ?, job_title = ?, location = ?, application_date = ?,
-                status = ?, job_link = ?, notes = ?
+                status = ?, job_link = ?, notes = ?, job_reference = ?
             WHERE id = ?
             """,
             (
@@ -135,6 +160,7 @@ def update_application(db_path, app_id, data):
                 data["status"],
                 data.get("job_link", ""),
                 data.get("notes", ""),
+                data.get("job_reference", ""),
                 app_id,
             ),
         )

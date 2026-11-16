@@ -25,7 +25,7 @@ def create_app(db_path=None):
     def db():
         return app.config["DATABASE"]
 
-    # ---------- FR2 + FR6 + FR7: list, search and filter ----------
+    # ---------- FR2 + FR6 + FR7 + FR10: list, search and filter ----------
     @app.route("/")
     def index():
         # Values come from the URL, e.g. /?q=orange&status=Interview
@@ -34,9 +34,12 @@ def create_app(db_path=None):
         if status not in models.STATUSES:
             status = ""  # ignore unknown statuses
         applications = models.search_applications(db(), query, status)
+        # FR10: exact reference match -> "You already applied to this offer"
+        reference_matches = models.find_by_reference(db(), query)
         return render_template(
             "index.html",
             applications=applications,
+            reference_matches=reference_matches,
             statuses=models.STATUSES,
             query=query,
             selected_status=status,

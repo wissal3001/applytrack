@@ -41,3 +41,18 @@ def test_bad_link_is_rejected(sample):
 def test_empty_link_is_allowed(sample):
     _, errors = validate_application({**sample, "job_link": ""})
     assert errors == []
+
+
+def test_job_reference_is_optional(sample):  # FR10
+    data, errors = validate_application(sample)  # sample has no reference
+    assert errors == [] and data["job_reference"] == ""
+
+
+def test_job_reference_is_trimmed(sample):  # FR10
+    data, errors = validate_application({**sample, "job_reference": "  REF-2026-1234  "})
+    assert errors == [] and data["job_reference"] == "REF-2026-1234"
+
+
+def test_job_reference_too_long_is_rejected(sample):  # FR10
+    _, errors = validate_application({**sample, "job_reference": "R" * 51})
+    assert "Job reference must be at most 50 characters." in errors

@@ -28,6 +28,10 @@
     </select>
   </label>
 
+  <label>Job reference
+    <input type="text" name="job_reference" maxlength="50" placeholder="e.g. REF-2026-1234" value="{{ application.job_reference or '' }}">
+  </label>
+
   <label>Job link
     <input type="url" name="job_link" placeholder="https://..." value="{{ application.job_link or '' }}">
   </label>

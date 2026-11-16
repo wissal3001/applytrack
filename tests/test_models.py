@@ -1,5 +1,7 @@
 """Unit tests for models.py — the database layer."""
 
+import sqlite3
+
 import models
 
 
@@ -66,3 +68,43 @@ def test_data_persists_after_reconnect(db_path, sample):  # NFR3
     app_id = models.create_application(db_path, sample)
     models.init_db(db_path)  # simulates restarting the application
     assert models.get_application(db_path, app_id) is not None
+
+
+def test_create_with_job_reference(db_path, sample):  # FR10
+    app_id = models.create_application(db_path, {**sample, "job_reference": "REF-2026-1234"})
+    assert models.get_application(db_path, app_id)["job_reference"] == "REF-2026-1234"
+
+
+def test_search_by_job_reference(db_path, sample):  # FR10
+    models.create_application(db_path, {**sample, "job_reference": "REF-2026-1234"})
+    models.create_application(db_path, {**sample, "company": "Airbus", "job_reference": "AB-99"})
+    results = models.search_applications(db_path, query="2026-12")
+    assert [a["company"] for a in results] == ["Orange"]
+
+
+def test_find_by_reference_exact_and_case_insensitive(db_path, sample):  # FR10
+    models.create_application(db_path, {**sample, "job_reference": "REF-2026-1234"})
+    assert len(models.find_by_reference(db_path, " ref-2026-1234 ")) == 1
+    assert models.find_by_reference(db_path, "REF-2026") == []  # partial is not exact
+    assert models.find_by_reference(db_path, "") == []
+
+
+def test_migration_adds_job_reference_to_old_database(tmp_path):  # FR10, NFR3
+    path = str(tmp_path / "old.db")
+    # Build a database with the Sprint 1-3 schema (no job_reference column)
+    with sqlite3.connect(path) as conn:
+        conn.execute(
+            """CREATE TABLE applications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, company TEXT NOT NULL,
+                job_title TEXT NOT NULL, location TEXT, application_date TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'Applied', job_link TEXT, notes TEXT)"""
+        )
+        conn.execute(
+            "INSERT INTO applications (company, job_title, application_date) "
+            "VALUES ('Orange', 'Data Intern', '2026-11-01')"
+        )
+    models.init_db(path)  # must add the column without losing data
+    models.init_db(path)  # running it twice must not fail
+    rows = models.get_all_applications(path)
+    assert len(rows) == 1 and rows[0]["company"] == "Orange"
+    assert rows[0]["job_reference"] is None

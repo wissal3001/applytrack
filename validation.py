@@ -21,6 +21,7 @@ def validate_application(form):
         "status": form.get("status", "Applied").strip(),
         "job_link": form.get("job_link", "").strip(),
         "notes": form.get("notes", "").strip(),
+        "job_reference": form.get("job_reference", "").strip(),  # FR10, optional
     }
     errors = []
 
@@ -50,5 +51,7 @@ def validate_application(form):
     # Length limits avoid absurd inputs
     if len(data["company"]) > 100 or len(data["job_title"]) > 100:
         errors.append("Company and job title must be at most 100 characters.")
+    if len(data["job_reference"]) > 50:
+        errors.append("Job reference must be at most 50 characters.")
 
     return data, errors

@@ -65,3 +65,21 @@ def test_common_operations_are_fast(client, sample):  # NFR2: under 2 seconds
     client.get("/dashboard")
     client.get("/?q=Company 4")
     assert time.perf_counter() - start < 2
+
+
+def test_create_with_reference_through_form(client, sample):  # FR10
+    client.post("/applications/new", data={**sample, "job_reference": "REF-2026-1234"})
+    assert b"Ref: REF-2026-1234" in client.get("/").data
+
+
+def test_reference_lookup_says_already_applied(client, sample):  # FR10
+    client.post("/applications/new", data={**sample, "job_reference": "REF-2026-1234"})
+    page = client.get("/?q=REF-2026-1234").data
+    assert b"You already applied to this offer (Orange, 2026-11-01, Applied)" in page
+
+
+def test_reference_lookup_not_found(client, sample):  # FR10
+    client.post("/applications/new", data={**sample, "job_reference": "REF-2026-1234"})
+    page = client.get("/?q=REF-0000").data
+    assert b"No application found with this reference" in page
+    assert b"You already applied" not in page
