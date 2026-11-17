@@ -68,7 +68,7 @@ Table `applications`
 | GET/POST | `/applications/<id>/edit` | Edit an application | FR3 |
 | POST | `/applications/<id>/status` | Change status | FR5 |
 | POST | `/applications/<id>/delete` | Delete | FR4 |
-| GET | `/dashboard` | Statistics | FR8 |
+| GET | `/dashboard` | Statistics, applications per day | FR8, FR11 |
 
 ## Traceability matrix (requirement -> code -> test)
 | Req. | Implemented in | Verified by |
@@ -83,21 +83,23 @@ Table `applications`
 | FR8 Statistics | `models.get_statistics`, route `dashboard` | `test_statistics`, `test_statistics_empty_database`, `test_dashboard_route` |
 | FR9 SQLite | `models.init_db` | all model tests |
 | FR10 Job reference | `models.init_db` (migration), `models.find_by_reference`, `models.search_applications`, `validation.validate_application`, route `index`, `form.html`, `index.html` | `test_create_with_job_reference`, `test_search_by_job_reference`, `test_find_by_reference_exact_and_case_insensitive`, `test_migration_adds_job_reference_to_old_database`, `test_job_reference_is_optional`, `test_job_reference_is_trimmed`, `test_job_reference_too_long_is_rejected`, `test_create_with_reference_through_form`, `test_reference_lookup_says_already_applied`, `test_reference_lookup_not_found` |
+| FR11 Applications per day | `models.get_applications_per_day`, `models.get_daily_summary`, route `dashboard`, `dashboard.html` | `test_per_day_missing_days_are_zero`, `test_per_day_several_applications_same_day`, `test_per_day_empty_database`, `test_daily_summary`, `test_dashboard_shows_applications_per_day`, `test_dashboard_per_day_empty_database` |
 | NFR1 Usability | flash messages, single form for create/edit, coloured statuses | manual test |
 | NFR2 Performance | indexed primary key, simple queries | `test_common_operations_are_fast` |
 | NFR3 Reliability | data stored in `applytrack.db` file | `test_data_persists_after_reconnect` |
 | NFR4 Maintainability | MVC separation, one module per responsibility | code review |
 | NFR5 Compatibility | standard HTML/CSS, no plugins | manual test on Chrome / Safari |
 | NFR6 Validation | `validation.validate_application` | `tests/test_validation.py` (11 tests) |
-| NFR7 Testability | app factory `create_app(db_path)`, pytest fixtures | 38 automated tests |
+| NFR7 Testability | app factory `create_app(db_path)`, pytest fixtures | 44 automated tests |
 
-## Development process (Agile, 4 sprints)
+## Development process (Agile, 5 sprints)
 | Sprint | Content | Commit |
 |---|---|---|
 | 1 | CRUD + status + validation | `Sprint 1: CRUD ...` |
 | 2 | Search, filter, dashboard | `Sprint 2: search ...` |
 | 3 | Automated tests + documentation | `Sprint 3: tests ...` |
 | 4 | Job reference field and lookup (FR10) | `Sprint 4: job reference ...` |
+| 5 | Applications per day on dashboard (FR11) | `Sprint 5: applications per day ...` |
 
 ## Out of scope (v1)
 Machine learning, automatic applications, external job platform integration, multi-user authentication.

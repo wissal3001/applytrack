@@ -6,6 +6,7 @@ A route (1) reads the request, (2) calls the model, (3) chooses a template (the 
 """
 
 import os
+from datetime import date
 
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
 
@@ -45,11 +46,20 @@ def create_app(db_path=None):
             selected_status=status,
         )
 
-    # ---------- FR8: dashboard with statistics ----------
+    # ---------- FR8 + FR11: dashboard with statistics ----------
     @app.route("/dashboard")
     def dashboard():
         stats = models.get_statistics(db())
-        return render_template("dashboard.html", stats=stats)
+        daily = models.get_daily_summary(db())
+        # FR11: one bar per day, with a short label such as "Nov 17"
+        per_day = []
+        for day, count in models.get_applications_per_day(db(), 14):
+            d = date.fromisoformat(day)
+            per_day.append({"label": f"{d:%b} {d.day}", "date": day, "count": count})
+        max_count = max([p["count"] for p in per_day] + [1])  # avoid division by 0
+        return render_template(
+            "dashboard.html", stats=stats, daily=daily, per_day=per_day, max_count=max_count
+        )
 
     # ---------- FR1: create a new application ----------
     @app.route("/applications/new", methods=["GET", "POST"])

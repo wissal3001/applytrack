@@ -1,6 +1,7 @@
 """Unit tests for models.py — the database layer."""
 
 import sqlite3
+from datetime import date, timedelta
 
 import models
 
@@ -108,3 +109,42 @@ def test_migration_adds_job_reference_to_old_database(tmp_path):  # FR10, NFR3
     rows = models.get_all_applications(path)
     assert len(rows) == 1 and rows[0]["company"] == "Orange"
     assert rows[0]["job_reference"] is None
+
+
+TODAY = date(2026, 11, 17)  # fixed "today" so the tests never depend on the real date
+
+
+def test_per_day_missing_days_are_zero(db_path, sample):  # FR11
+    models.create_application(db_path, {**sample, "application_date": "2026-11-15"})
+    result = models.get_applications_per_day(db_path, days=14, today=TODAY)
+    assert len(result) == 14
+    assert result[0] == ("2026-11-04", 0) and result[-1] == ("2026-11-17", 0)
+    assert dict(result)["2026-11-15"] == 1
+    assert sum(n for _, n in result) == 1
+
+
+def test_per_day_several_applications_same_day(db_path, sample):  # FR11
+    for company in ["Orange", "Airbus", "Thales"]:
+        models.create_application(db_path, {**sample, "company": company,
+                                            "application_date": "2026-11-17"})
+    models.create_application(db_path, {**sample, "application_date": "2026-10-01"})  # too old
+    result = models.get_applications_per_day(db_path, days=14, today=TODAY)
+    assert result[-1] == ("2026-11-17", 3)
+    assert sum(n for _, n in result) == 3
+
+
+def test_per_day_empty_database(db_path):  # FR11 edge case
+    result = models.get_applications_per_day(db_path, days=14, today=TODAY)
+    assert len(result) == 14 and all(n == 0 for _, n in result)
+    assert models.get_daily_summary(db_path, today=TODAY) == {
+        "today": 0, "last_7_days": 0, "avg_30_days": 0.0}
+
+
+def test_daily_summary(db_path, sample):  # FR11
+    for days_ago in [0, 0, 3, 10, 40]:
+        day = (TODAY - timedelta(days=days_ago)).isoformat()
+        models.create_application(db_path, {**sample, "application_date": day})
+    summary = models.get_daily_summary(db_path, today=TODAY)
+    assert summary["today"] == 2
+    assert summary["last_7_days"] == 3
+    assert summary["avg_30_days"] == round(4 / 30, 1)  # 40 days ago is not counted

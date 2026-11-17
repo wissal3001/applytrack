@@ -3,10 +3,11 @@ models.py — MODEL layer (MVC architecture).
 
 This file is the ONLY place that talks to the SQLite database.
 The rest of the application calls these functions instead of writing SQL.
-Requirements covered: FR1, FR2, FR3, FR4, FR5, FR9, FR10, NFR3 (data persists on disk).
+Requirements covered: FR1, FR2, FR3, FR4, FR5, FR9, FR10, FR11, NFR3 (data persists on disk).
 """
 
 import sqlite3
+from datetime import date, timedelta
 
 # The four possible statuses of an application (used for validation and filters).
 STATUSES = ["Applied", "Interview", "Offer", "Rejected"]
@@ -131,6 +132,39 @@ def get_statistics(db_path):
     interview_rate = round(progressed * 100 / total) if total else 0
 
     return {"total": total, "by_status": by_status, "interview_rate": interview_rate}
+
+
+def get_applications_per_day(db_path, days=14, today=None):
+    """FR11 — Number of applications sent on each of the last `days` days
+    (today included), based on application_date.
+    Returns a list of (date "YYYY-MM-DD", count), oldest first.
+    Days without any application are included with 0.
+    `today` can be given by the tests; by default it is the real date."""
+    today = today or date.today()
+    start = today - timedelta(days=days - 1)
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            "SELECT application_date, COUNT(*) AS n FROM applications "
+            "WHERE application_date BETWEEN ? AND ? GROUP BY application_date",
+            (start.isoformat(), today.isoformat()),
+        ).fetchall()
+    counts = {row["application_date"]: row["n"] for row in rows}
+    result = []
+    for i in range(days):
+        day = (start + timedelta(days=i)).isoformat()
+        result.append((day, counts.get(day, 0)))  # missing day -> 0
+    return result
+
+
+def get_daily_summary(db_path, today=None):
+    """FR11 — The three numbers of the dashboard: applications sent today,
+    during the last 7 days, and the average per day over the last 30 days."""
+    last_30 = [n for _, n in get_applications_per_day(db_path, 30, today)]
+    return {
+        "today": last_30[-1],
+        "last_7_days": sum(last_30[-7:]),
+        "avg_30_days": round(sum(last_30) / 30, 1),
+    }
 
 
 def get_application(db_path, app_id):

@@ -32,4 +32,36 @@
     </div>
   {% endfor %}
 </div>
+
+{# FR11: number of applications sent per day #}
+<h2>Activity</h2>
+<div class="cards">
+  <div class="card">
+    <div class="card-label">Sent today</div>
+    <div class="card-value">{{ daily.today }}</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Sent this week</div>
+    <div class="card-value">{{ daily.last_7_days }}</div>
+    <div class="card-hint">last 7 days</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Average per day</div>
+    <div class="card-value">{{ daily.avg_30_days }}</div>
+    <div class="card-hint">over the last 30 days</div>
+  </div>
+</div>
+
+<h2>Applications per day</h2>
+<div class="bars day-chart">
+  {% for p in per_day %}
+    <div class="day-col" title="{{ p.date }}: {{ p.count }}">
+      <span class="day-count">{{ p.count }}</span>
+      <div class="day-track">
+        <div class="day-fill" style="height: {{ p.count * 100 / max_count }}%"></div>
+      </div>
+      <span class="day-label">{{ p.label }}</span>
+    </div>
+  {% endfor %}
+</div>
 {% endblock %}

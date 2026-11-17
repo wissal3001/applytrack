@@ -1,6 +1,7 @@
 """Integration tests: they call the web pages like a real browser would."""
 
 import time
+from datetime import date
 
 
 def test_home_page_loads(client):
@@ -83,3 +84,19 @@ def test_reference_lookup_not_found(client, sample):  # FR10
     page = client.get("/?q=REF-0000").data
     assert b"No application found with this reference" in page
     assert b"You already applied" not in page
+
+
+def test_dashboard_shows_applications_per_day(client, sample):  # FR11
+    today = date.today()
+    client.post("/applications/new", data={**sample, "application_date": today.isoformat()})
+    response = client.get("/dashboard")
+    assert response.status_code == 200
+    assert b"Applications per day" in response.data
+    assert b"Sent today" in response.data
+    assert f"{today:%b} {today.day}".encode() in response.data  # e.g. "Nov 17"
+
+
+def test_dashboard_per_day_empty_database(client):  # FR11
+    response = client.get("/dashboard")
+    assert response.status_code == 200
+    assert b"Applications per day" in response.data

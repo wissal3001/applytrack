@@ -57,3 +57,11 @@ h1 { margin-top: 0; }
 .bar-fill.status-offer     { background: #2e9e55; }
 .bar-fill.status-rejected  { background: #d9534f; }
 .bar-count { width: 30px; text-align: right; font-weight: 600; }
+
+/* FR11: vertical bars "Applications per day" */
+.day-chart { display: flex; gap: 6px; align-items: flex-end; overflow-x: auto; }
+.day-col { flex: 1; min-width: 34px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.day-track { width: 100%; max-width: 28px; height: 140px; display: flex; align-items: flex-end; }
+.day-fill { width: 100%; background: #2f7de1; border-radius: 4px 4px 0 0; }
+.day-count { font-weight: 600; font-size: 0.85rem; }
+.day-label { font-size: 0.72rem; color: #666; white-space: nowrap; }
